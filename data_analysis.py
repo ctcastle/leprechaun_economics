@@ -10,7 +10,7 @@ def check_years(years_list, start_year, end_year):
     years_in_list = (start_year in years_list) & (end_year in years_list)
     years_in_order = (int(end_year) > int(start_year))
 
-    if not ((start_year in years_list) & (end_year in years_list) & (int(end_year) > int(start_year))):
+    if not ((years_in_list) & (years_in_order)):
         raise KeyError("Invalid year range. Years must be in proper range, and start year must come before end year.")
     return
 
@@ -71,6 +71,38 @@ def df_index_inner_join(df1, df2, df3, key1, key2, key3):
 
     combined_data = pd.concat([df1_filtered, df2_filtered, df3_filtered], axis=0, keys=[key1, key2, key3], join='inner')
     return combined_data
+
+def drop_countries_by_nan(df, threshold):
+    """ Removes rows of a country if either Total GDP or GDP Per Capita 
+        contain more than the threshold percentage of missing values.
+        Returns a new dataframe.
+        
+    Args:
+        df (Pandas dataframe): Expecting dataframe with outer index = []'Total GDP', 'GDP Per Capita', 'Gini Coeff']
+                                inner index = [countries]
+        threshold (float): a float between zero and one representing the percentage of nans above which the country is dropped.
+    """
+    assert (df.index.names[0] == 'Metric' and df.index.names[1] == 'Country'), "Unexpeced MultiIndex names. Expecting ['Metric', 'Countries]"
+    assert (isinstance(threshold, float) & (0 <= threshold <= 1))
+
+    df_copy = df.copy()
+    valid_country_list = df.index.get_level_values('Country').unique().tolist()
+    years_list = df.columns.tolist()
+
+    print("********* DROPPING COUNTRIES **********")
+    for country in valid_country_list:
+        country_slice = df.xs(country, level='Country')
+        country_gdp_nan_sum = pd.isna(country_slice.loc['Total GDP'].values).sum()
+        country_gdp_percap_nan_sum = pd.isna(country_slice.loc['GDP Per Capita'].values).sum()
+        if (country_gdp_nan_sum > len(years_list)*threshold) | (country_gdp_percap_nan_sum > len(years_list)*threshold):
+            df_copy = df_copy.drop(country, level='Country')
+            print("Dropping", country)
+            print("  -  ", country_gdp_nan_sum, "missing values in Total GDP.")
+            print("  -  ", country_gdp_percap_nan_sum, "missing values in GDP Per Capita.")
+    print("***************************************")
+    return df_copy
+
+
 
 
 def get_user_input(combined_data):
@@ -159,9 +191,15 @@ def main():
 
     combined_data = df_index_inner_join(total_gdp_copy, gdp_percap_copy, gini_copy, 'Total GDP', 'GDP Per Capita', 'Gini Coeff')
     combined_data.index.names = ['Metric', 'Country']
+    print(combined_data.shape)
 
-    user_input_test = get_user_input(combined_data)
-    print(user_input_test)
+    data_nans_dropped = drop_countries_by_nan(combined_data, 0.5)
+    print(data_nans_dropped.shape)
+
+    # user_input_test = get_user_input(combined_data)
+    # print(user_input_test)
+
+
 
 if __name__ == '__main__':
     
