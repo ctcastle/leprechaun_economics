@@ -1,26 +1,7 @@
 import numpy as np
 import pandas as pd
 
-
-def check_years(years_list, start_year, end_year):
-
-    start_year = start_year.strip()
-    end_year = end_year.strip()
-
-    years_in_list = (start_year in years_list) & (end_year in years_list)
-    years_in_order = (int(end_year) > int(start_year))
-
-    if not ((years_in_list) & (years_in_order)):
-        raise KeyError("Invalid year range. Years must be in proper range, and start year must come before end year.")
-    return
-
-def check_country(country_list, new_country):
-
-    new_country = new_country.strip()
-
-    if not (new_country in country_list):
-        raise KeyError("Country not in list. Try again.")
-    return
+# Data cleaning and merging
 
 def parse_gdp_values(df):
     """ Parses monetary values in a pandas dataframe, converting string values with suffixes to floats with corresponding zeros.
@@ -31,20 +12,20 @@ def parse_gdp_values(df):
     """
     for country in df.index:
         for year in df:
-            val = df.loc[country][year]
+            val = df.loc[country,year]
             if isinstance(val, float):
                 continue    
             val = val.strip().upper()
             if val.endswith('K'):
-                df.loc[country][year] = float(val[:-1]) * 1e3
+                df.loc[country,year] = float(val[:-1]) * 1e3
             elif val.endswith('M'):
-                df.loc[country][year] = float(val[:-1]) * 1e6
+                df.loc[country,year] = float(val[:-1]) * 1e6
             elif val.endswith('B'):
-                df.loc[country][year] = float(val[:-1]) * 1e9
+                df.loc[country,year] = float(val[:-1]) * 1e9
             elif val.endswith('TR'):
-                df.loc[country][year] = float(val[:-2]) * 1e12
+                df.loc[country,year] = float(val[:-2]) * 1e12
             else:
-                df.loc[country][year] = float(val[:-1])
+                df.loc[country,year] = float(val[:-1])
 
 
 def df_index_inner_join(df1, df2, df3, key1, key2, key3):
@@ -103,6 +84,31 @@ def drop_countries_by_nan(df, threshold):
     return df_copy
 
 
+
+
+#################################################################
+
+# User input validation
+
+def check_years(years_list, start_year, end_year):
+
+    start_year = start_year.strip()
+    end_year = end_year.strip()
+
+    years_in_list = (start_year in years_list) & (end_year in years_list)
+    years_in_order = (int(end_year) > int(start_year))
+
+    if not ((years_in_list) & (years_in_order)):
+        raise KeyError("Invalid year range. Years must be in proper range, and start year must come before end year.")
+    return
+
+def check_country(country_list, new_country):
+
+    new_country = new_country.strip()
+
+    if not (new_country in country_list):
+        raise KeyError("Country not in list. Try again.")
+    return
 
 
 def get_user_input(combined_data):
@@ -166,6 +172,24 @@ def get_user_input(combined_data):
 
 
 
+def describe(df, user_input):
+
+    # nation GDP histogram, after that cound do a groupby to do stats on each country category.
+    # categories could be something like over 10TN (superpowers), between 1-10TN (highly developed / large), 
+    
+    # among the countries chosen, rank most recent year for all metrics
+    # show average year over year GDP growth percentage
+    # show
+
+    # for country in country list
+        # average gdp growth % over time
+
+
+
+
+    return
+
+
 
 
 def main():
@@ -196,8 +220,8 @@ def main():
     data_nans_dropped = drop_countries_by_nan(combined_data, 0.5)
     print(data_nans_dropped.shape)
 
-    # user_input_test = get_user_input(combined_data)
-    # print(user_input_test)
+    user_input_test = get_user_input(combined_data)
+    print(user_input_test)
 
 
 
