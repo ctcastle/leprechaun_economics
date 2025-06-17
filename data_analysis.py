@@ -174,12 +174,12 @@ def get_user_input(combined_data):
 
 def describe(df, user_input):
 
-    # nation GDP histogram, after that cound do a groupby to do stats on each country category.
+    # nation GDP histogram for start and end years, after that cound do a groupby to do stats on each country category.
     # categories could be something like over 10TN (superpowers), between 1-10TN (highly developed / large), 
     
     # among the countries chosen, rank most recent year for all metrics
     # show average year over year GDP growth percentage
-    # show
+    # for start and end years, range
 
     # for country in country list
         # average gdp growth % over time
