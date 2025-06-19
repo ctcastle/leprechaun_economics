@@ -315,16 +315,16 @@ def main():
     print(new_data_cleaned.shape)
     describe_all(new_data_cleaned)
 
-    # user_input = get_user_input(data_cleaned)
-    # print(user_input)
+    user_input = get_user_input(data_cleaned)
+    print(user_input)
 
-    test_input = (['Canada', 'Germany', 'Ireland', 'USA'], ['1960', '2023'])
+    # test_input = (['Canada', 'Germany', 'Ireland', 'USA'], ['1960', '2023'])
 
     # Time series plots for user selected countries for each metric
-    plotter(new_data_cleaned,test_input[0],test_input[1],'Total GDP')
-    plotter(new_data_cleaned,test_input[0],test_input[1],'GDP Per Capita')
-    plotter(new_data_cleaned,test_input[0],test_input[1],'Gini Coeff')
-    plotter(new_data_cleaned,test_input[0],test_input[1],'Gini Dollars')
+    plotter(new_data_cleaned,user_input[0],user_input[1],'Total GDP')
+    plotter(new_data_cleaned,user_input[0],user_input[1],'GDP Per Capita')
+    plotter(new_data_cleaned,user_input[0],user_input[1],'Gini Coeff')
+    plotter(new_data_cleaned,user_input[0],user_input[1],'Gini Dollars')
 
     # Export to csv file
     new_data_cleaned.to_csv("final_data.csv")
