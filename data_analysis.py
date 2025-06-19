@@ -161,9 +161,12 @@ def plotter(df, country_list, year_range, metric):
         year_range (list): list containing the start and end years
         metric (str): Metric to be plotted for each country. E.g., 'Total GDP'
     """
+    fig, ax = plt.subplots()
     idx = pd.IndexSlice
-    sub_df = df.loc[idx[metric, :,country_list],idx[year_range[0]:year_range[-1]]]
-    sub_df.transpose().plot() 
+    sub_df = df.loc[idx[metric,:,country_list],idx[year_range[0]:year_range[-1]]]
+    sub_df = sub_df.transpose()
+    sub_df.plot(ax=ax) 
+    df.loc[idx[metric,:,country_list],idx[year_range[0]:year_range[-1]]].aggregate(['mean']).transpose().plot(ax=ax,color='black',marker='.')
     plt.legend(bbox_to_anchor=(1.05, 1), loc='upper left', borderaxespad=0.)
     plt.show()
 
@@ -231,7 +234,16 @@ def get_user_input(combined_data):
     
     return (added_country_list, year_range)
 
-
+# def save_analysis_as_excel(filename,gen_analysis,specific_analysis,final_dataframe):
+#     with pd.ExcelWriter(filename) as writer:
+#         pivot_table.to_excel(writer,sheet_name='Metric Report',startrow=1)
+#         describe.to_excel(writer,sheet_name='Metric Report',startrow=7)
+#         s = writer.sheets['Metric Report']
+#         s.cell(1,1).value = "Pivot Table: Average Metric Based on Country Classification"
+#         s.merge_cells('A1:E1')
+#         s.cell(7,1).value = "General Data Description"
+#         s.merge_cells('A7:D7')
+#         ndf.to_excel(writer,sheet_name='Formatted Data')
 
 
 
