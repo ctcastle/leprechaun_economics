@@ -295,11 +295,11 @@ def save_analysis_as_excel(filename,user_dict,general_dict,general_dataframe):
 def main():
 
     # Read in data from csv files
-    total_gdp = pd.read_csv("leprechaun_economics/total_gdp_us_inflation_adjusted.csv")
+    total_gdp = pd.read_csv("total_gdp_us_inflation_adjusted.csv")
     total_gdp = total_gdp.set_index('country')
-    gdp_percap = pd.read_csv("leprechaun_economics/gdppercapita_us_inflation_adjusted.csv")
+    gdp_percap = pd.read_csv("gdppercapita_us_inflation_adjusted.csv")
     gdp_percap = gdp_percap.set_index('country')
-    gini = pd.read_csv("leprechaun_economics/gini.csv")
+    gini = pd.read_csv("gini.csv")
     gini = gini.set_index('country')
 
     # make sorted copy of original raw data
