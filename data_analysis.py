@@ -135,9 +135,11 @@ def check_country(country_list, new_country):
     return
 
 
-def describe_all(df):
+def describe_all(df,country_names):
     """ Calls the describe method for each Metric in df on decade 
         intervals in the columns (e.g., '1960', '1970', ...)
+        ****Specifically grabs the column labeled as the decade, no other data****
+        ****Will error out if not including the floor decade****
 
     Args:
         df (Pandas Dataframe): MultiIndex dataframe containing the data to be described.
@@ -145,11 +147,15 @@ def describe_all(df):
     decade_list = [10 * (int(year) // 10) for year in df.columns]
     decade_list = [str(year) for year in decade_list]
     decade_list = pd.Series(decade_list).unique()
-
+    print(decade_list)
     # call .describe() for each metric
-    for metric in df.index.get_level_values('Metric').unique():
-        print(f"*** {metric} General Stats ***")
-        print(df.loc[metric][decade_list].describe())
+    # for metric in df.index.get_level_values('Metric').unique():
+    #     print(f"*** {metric} General Stats ***")
+    #     print(df.loc[metric][decade_list].describe())
+    # Updated to use a groupby object per requirement 
+    for (method, group) in df.groupby('Metric'):
+            print(f'Describing {method} metric by decade for: {country_names}')
+            print(group[decade_list].describe())
 
 
 def plotter(df, country_list, year_range, metric):
@@ -161,13 +167,14 @@ def plotter(df, country_list, year_range, metric):
         year_range (list): list containing the start and end years
         metric (str): Metric to be plotted for each country. E.g., 'Total GDP'
     """
-    fig, ax = plt.subplots()
+    fig, ax = plt.subplots(figsize=(10,6))
     idx = pd.IndexSlice
     sub_df = df.loc[idx[metric,:,country_list],idx[year_range[0]:year_range[-1]]]
     sub_df = sub_df.transpose()
     sub_df.plot(ax=ax) 
     df.loc[idx[metric,:,country_list],idx[year_range[0]:year_range[-1]]].aggregate(['mean']).transpose().plot(ax=ax,color='black',marker='.')
-    plt.legend(bbox_to_anchor=(1.05, 1), loc='upper left', borderaxespad=0.)
+    plt.legend(bbox_to_anchor=(.2, 1), loc='upper left', borderaxespad=0.5)
+    plt.title(f'{metric} for {country_list} in range {year_range}')
     plt.show()
 
 
@@ -234,16 +241,35 @@ def get_user_input(combined_data):
     
     return (added_country_list, year_range)
 
-# def save_analysis_as_excel(filename,gen_analysis,specific_analysis,final_dataframe):
-#     with pd.ExcelWriter(filename) as writer:
-#         pivot_table.to_excel(writer,sheet_name='Metric Report',startrow=1)
-#         describe.to_excel(writer,sheet_name='Metric Report',startrow=7)
-#         s = writer.sheets['Metric Report']
-#         s.cell(1,1).value = "Pivot Table: Average Metric Based on Country Classification"
-#         s.merge_cells('A1:E1')
-#         s.cell(7,1).value = "General Data Description"
-#         s.merge_cells('A7:D7')
-#         ndf.to_excel(writer,sheet_name='Formatted Data')
+def save_analysis_as_excel(filename,user_dict,general_dict,general_dataframe):
+    """Saves the compacted and cleaned dataframe and the analysis performed on the data. 
+    Specifically saves a pivot table of the average of each metric during the most recent year of the datarange, 
+    per the classification of the country. The classification is based on the country's total GDP. 
+    It also saves a general describe method of the selected and general dataset. 
+
+    Args: 
+    filename (String): The filename of the desired output Excel file 
+    user_dict (Dictionary): A dictionary which contains the pivot table and describe dataframe for the user selected countries and years 
+    general_dict (Dictionary): A dictionary which contains the pivot table and describe dataframe for the full dataset 
+    general_dataframe (DataFrame): A dataframe containing the cleaned and compacted dataset 
+    
+    """
+    with pd.ExcelWriter(filename) as writer:
+        user_dict['pivot table'].to_excel(writer,sheet_name='Select Countries Metric Report',startrow=1)
+        user_dict['describe'].to_excel(writer,sheet_name='Select Countries Metric Report',startrow=7)
+        s = writer.sheets['Select Countries Metric Report']
+        s.cell(1,1).value = "Pivot Table: Average Metric Based on Country Classification: Select Countries"
+        s.merge_cells('A1:E1')
+        s.cell(7,1).value = "General Data Description: Select Countries"
+        s.merge_cells('A7:D7')
+        general_dict['pivot table'].to_excel(writer,sheet_name='All Countries Metric Report',startrow=1)
+        general_dict['describe'].to_excel(writer,sheet_name='All Countries Metric Report',startrow=7)
+        s = writer.sheets['All Countries Metric Report']
+        s.cell(1,1).value = "Pivot Table: Average Metric Based on Country Classification: All Countries"
+        s.merge_cells('A1:E1')
+        s.cell(7,1).value = "General Data Description: All Countries"
+        s.merge_cells('A7:D7')
+        general_dataframe.to_excel(writer,sheet_name='Formatted Data')
 
 
 
@@ -286,7 +312,7 @@ def main():
 
     # General Stats
     print("***************** General Stats *******************")
-    describe_all(data_cleaned)
+    describe_all(data_cleaned,'all countries')
 
     # Data Processing
     print("***************** Data Processing *****************")
@@ -305,7 +331,8 @@ def main():
     equality_class = pd.cut(new_data_cleaned.loc['Gini Coeff',:]['2023'], bins=[0, 30, 35, 40, 45, 50, 100],labels=['Very Low Inequality','Low Inequality', 'Low-Moderate Inequality', 'Moderate-High Inequality', 'High Inequality', 'Very High Inequality'])
     livability_class = pd.cut(new_data_cleaned.loc['Gini Dollars',:]['2023'], bins=[0, 1135, 4465, 13845, 30000, 300000],labels=['Low Livability','Low-Moderate Livability', 'Moderate Livability', 'Moderate-High Livability', 'High Livability'])
 
-    classification = pd.concat([economic_weightclass, income_class, equality_class, livability_class])
+    #classification = pd.concat([economic_weightclass, income_class, equality_class, livability_class])
+    classification = pd.concat([economic_weightclass,economic_weightclass,economic_weightclass,economic_weightclass])
     metrics = new_data_cleaned.index.get_level_values('Metric')
     countries = new_data_cleaned.index.get_level_values('Country')
     new_index = pd.MultiIndex.from_arrays([metrics, classification.values, countries], names=['Metric', 'Classification', 'Country'])
@@ -313,12 +340,25 @@ def main():
     # Assign to the DataFrame, call describe again (includes new metric)
     new_data_cleaned.index = new_index
     print(new_data_cleaned.shape)
-    describe_all(new_data_cleaned)
+    describe_all(new_data_cleaned,'all countries')
 
-    user_input = get_user_input(data_cleaned)
-    print(user_input)
+    # Print to pivot_table 
+    general_pivot_table = new_data_cleaned.pivot_table('2023',index='Metric',columns='Classification') # Pivot per requirement 
 
-    # test_input = (['Canada', 'Germany', 'Ireland', 'USA'], ['1960', '2023'])
+    # user_input = get_user_input(data_cleaned)
+    # print(user_input)
+
+    user_input = (['Canada', 'Germany', 'Ireland', 'USA'], ['1960', '2023'])
+    idx = pd.IndexSlice
+    sub_df = new_data_cleaned.loc[idx[:,:,user_input[0]],idx[user_input[1][0]:user_input[1][1]]]
+    user_pivot_table = sub_df.pivot_table(user_input[1][1],index='Metric',columns='Classification') # Pivot per requirement 
+    describe_all(sub_df,user_input[0])
+
+    # Create dictionaries for excel output 
+    general_dict = {'pivot table': general_pivot_table,'describe': 
+                    new_data_cleaned.groupby('Metric')[['1960','2023']].describe().stack()}
+    user_dict = {'pivot table': user_pivot_table,'describe': 
+                 sub_df.groupby('Metric')[[user_input[1][0],user_input[1][1]]].describe().stack()}
 
     # Time series plots for user selected countries for each metric
     plotter(new_data_cleaned,user_input[0],user_input[1],'Total GDP')
@@ -328,6 +368,7 @@ def main():
 
     # Export to csv file
     new_data_cleaned.to_csv("final_data.csv")
+    save_analysis_as_excel('test_output.xlsx',user_dict,general_dict,new_data_cleaned) # Excel file per requirement 
 
 
 
