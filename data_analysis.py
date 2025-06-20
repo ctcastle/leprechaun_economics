@@ -147,7 +147,14 @@ def describe_all(df,country_names):
     decade_list = [10 * (int(year) // 10) for year in df.columns]
     decade_list = [str(year) for year in decade_list]
     decade_list = pd.Series(decade_list).unique()
-    print(decade_list)
+
+    describe_years = decade_list
+    describe_years[0] = df.columns[0]
+    final_year = df.columns[-1]
+    describe_years = describe_years.tolist()
+    describe_years.append(final_year)
+    describe_years = pd.Series(describe_years).unique()
+    print(describe_years)
     # call .describe() for each metric
     # for metric in df.index.get_level_values('Metric').unique():
     #     print(f"*** {metric} General Stats ***")
@@ -155,7 +162,7 @@ def describe_all(df,country_names):
     # Updated to use a groupby object per requirement 
     for (method, group) in df.groupby('Metric'):
             print(f'Describing {method} metric by decade for: {country_names}')
-            print(group[decade_list].describe())
+            print(group[describe_years].describe())
 
 
 def plotter(df, country_list, year_range, metric):
@@ -345,10 +352,10 @@ def main():
     # Print to pivot_table 
     general_pivot_table = new_data_cleaned.pivot_table('2023',index='Metric',columns='Classification') # Pivot per requirement 
 
-    # user_input = get_user_input(data_cleaned)
-    # print(user_input)
+    user_input = get_user_input(data_cleaned)
+    print(user_input)
 
-    user_input = (['Canada', 'Germany', 'Ireland', 'USA'], ['1960', '2023'])
+    # user_input = (['Canada', 'Germany', 'Ireland', 'USA'], ['1960', '2023'])
     idx = pd.IndexSlice
     sub_df = new_data_cleaned.loc[idx[:,:,user_input[0]],idx[user_input[1][0]:user_input[1][1]]]
     user_pivot_table = sub_df.pivot_table(user_input[1][1],index='Metric',columns='Classification') # Pivot per requirement 
@@ -367,8 +374,7 @@ def main():
     plotter(new_data_cleaned,user_input[0],user_input[1],'Gini Dollars')
 
     # Export to csv file
-    new_data_cleaned.to_csv("final_data.csv")
-    save_analysis_as_excel('test_output.xlsx',user_dict,general_dict,new_data_cleaned) # Excel file per requirement 
+    save_analysis_as_excel('final_output.xlsx',user_dict,general_dict,new_data_cleaned) # Excel file per requirement 
 
 
 
