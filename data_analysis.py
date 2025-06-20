@@ -372,6 +372,8 @@ def main():
     sub_df = new_data_cleaned.loc[idx[:,:,user_input[0]],idx[user_input[1][0]:user_input[1][1]]]
     user_pivot_table = sub_df.pivot_table(user_input[1][1],index='Metric',columns='Classification') # Pivot per requirement 
     describe_all(sub_df,user_input[0])
+    print(f"Pivot Tabe of {user_input[1][1]} data, pivoting on Classification and Metric")
+    print(user_pivot_table)
 
     # Create dictionaries for excel output 
     general_dict = {'pivot table': general_pivot_table,'describe': 
