@@ -362,7 +362,7 @@ def main():
     describe_all(new_data_cleaned,'all countries')
 
     # Print to pivot_table 
-    general_pivot_table = new_data_cleaned.pivot_table('2023',index='Metric',columns='Classification') # Pivot per requirement 
+    general_pivot_table = new_data_cleaned.pivot_table('2023',index='Metric',columns='Classification',observed=False) # Pivot per requirement 
 
     user_input = get_user_input(data_cleaned)
     print(user_input)
@@ -370,14 +370,14 @@ def main():
     # user_input = (['Canada', 'Germany', 'Ireland', 'USA'], ['1960', '2023'])
     idx = pd.IndexSlice
     sub_df = new_data_cleaned.loc[idx[:,:,user_input[0]],idx[user_input[1][0]:user_input[1][1]]]
-    user_pivot_table = sub_df.pivot_table(user_input[1][1],index='Metric',columns='Classification') # Pivot per requirement 
+    user_pivot_table = sub_df.pivot_table(user_input[1][1],index='Metric',columns='Classification',observed=False) # Pivot per requirement 
     describe_all(sub_df,user_input[0])
 
     # Create dictionaries for excel output 
     general_dict = {'pivot table': general_pivot_table,'describe': 
-                    new_data_cleaned.groupby('Metric')[['1960','2023']].describe().stack()}
+                    new_data_cleaned.groupby('Metric')[['1960','2023']].describe().stack(future_stack=True)}
     user_dict = {'pivot table': user_pivot_table,'describe': 
-                 sub_df.groupby('Metric')[[user_input[1][0],user_input[1][1]]].describe().stack()}
+                 sub_df.groupby('Metric')[[user_input[1][0],user_input[1][1]]].describe().stack(future_stack=True)}
 
     # Time series plots for user selected countries for each metric
     plotter(new_data_cleaned,user_input[0],user_input[1],'Total GDP')
