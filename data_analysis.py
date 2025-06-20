@@ -175,7 +175,19 @@ def plotter(df, country_list, year_range, metric):
     df.loc[idx[metric,:,country_list],idx[year_range[0]:year_range[-1]]].aggregate(['mean']).transpose().plot(ax=ax,color='black',marker='.')
     plt.legend(bbox_to_anchor=(.2, 1), loc='upper left', borderaxespad=0.5)
     plt.title(f'{metric} for {country_list} in range {year_range}')
+    plt.xlabel('Years')
+    match metric:
+        case 'Total GDP':
+            plt.ylabel(f'{metric} in USD')
+        case 'GDP Per Capita':
+            plt.ylabel(f'{metric} in USD')
+        case 'Gini Coeff':
+            plt.ylabel(f'{metric} between 0 and 100 (lower is more equal)')
+        case 'Gini Dollars':
+            plt.ylabel(f'{metric} in USD')
+    plt.savefig(f'{metric}.png')
     plt.show()
+    
 
 
 
